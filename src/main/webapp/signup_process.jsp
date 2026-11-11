@@ -1,3 +1,4 @@
+<%@page import="java.sql.PreparedStatement"%>
 <%@page import="java.sql.Statement"%>
 <%@page import="java.sql.DriverManager"%>
 <%@page import="java.sql.Connection"%>
@@ -18,7 +19,10 @@
 		String umail = request.getParameter("userMAIL");
 		
 		//Statement 방식 sql
-		String sql = "INSERT INTO members(id, passwd, email) VALUES('"+uid+"','"+upw+"','"+umail+"')";
+		//String sql = "INSERT INTO members(id, passwd, email) VALUES('"+uid+"','"+upw+"','"+umail+"')";
+		
+		//PrepareStatement 방식 sql
+		String sql = "INSERT INTO members(id, passwd, email) VALUES(?,?,?)";
 		//System.out.println(sql);
 		
 		//드라이버 이름->이름은 정해져 있음
@@ -32,15 +36,24 @@
 		String password = "12345";
 		
 		Connection conn = null;
-		Statement stmt = null;
+		//Statement stmt = null;
+		PreparedStatement pstmt = null;
 		
 		
 		try {
 			Class.forName(driverName);
 			conn = DriverManager.getConnection(url, username, password);
 			
-			stmt = conn.createStatement();
-			int result = stmt.executeUpdate(sql); //sql문 실행
+			//stmt = conn.createStatement();			
+			//int result = stmt.executeUpdate(sql); //sql문 실행
+			
+			pstmt = conn.prepareStatement(sql); //sql O
+			
+			pstmt.setString(1, uid);
+			pstmt.setString(2, upw);
+			pstmt.setString(3, umail);
+			
+			int result = pstmt.executeUpdate(); //sql X
 			
 			if(result == 1) {
 				out.println("회원 가입 성공!");
@@ -52,8 +65,8 @@
 		} catch(Exception e) {
 			e.printStackTrace();
 		} finally {
-			if(stmt != null) {
-				stmt.close();
+			if(pstmt != null) {
+				pstmt.close();
 			}
 			if(conn != null) {
 				conn.close();
